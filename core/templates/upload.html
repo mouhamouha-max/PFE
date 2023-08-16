@@ -1,0 +1,5 @@
+<form action="{% url 'upload_pcap_file' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="pcap_file">
+    <button type="submit">Upload </button>
+</form>

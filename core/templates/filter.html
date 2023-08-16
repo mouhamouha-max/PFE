@@ -1,0 +1,102 @@
+
+{% block content %}
+<form method="get">
+    {% csrf_token %}
+    <input type="text" name="from_value" placeholder="From" value="{{ from_value }}">
+    <input type="text" name="to_value" placeholder="To" value="{{ to_value }}">
+    <button type="submit">Filter</button>
+</form>
+
+<h1>File Download Successfully</h1>
+<p>Total Packets: {{ packet_count }}</p>
+
+{% if error %}
+    <p>{{ error }}</p>
+{% else %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Packet Number</th>
+                <th>Raw Packet</th>
+                <th>Packet Info</th>
+                <th>Time</th> <!-- Nouvelle colonne pour afficher le temps -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for packet in packet_details %}
+            <tr>
+                <td>{{ packet.packet_number }}</td>
+                <td>
+                    <pre>
+{{ packet.packet|safe }}
+                    </pre>
+                </td>
+                <td>
+                    {% if packet.sip_info %}
+                        <a href="#" class="summary-link" data-summary="{{ packet.sip_info.summary }}">{{ packet.sip_info.summary }}</a>
+                        <div class="hidden-details" style="display: none;">
+                            <strong>Source IP:</strong> {{ packet.sip_info.src_ip }}<br>
+                            <strong>Destination IP:</strong> {{ packet.sip_info.dst_ip }}<br>
+                            <strong>Method:</strong> {{ packet.sip_info.method }}<br>
+                            <strong>From:</strong> {{ packet.sip_info.from }}<br>
+                            <strong>To:</strong> {{ packet.sip_info.to }}<br>
+                            <strong>Headers:</strong><br>
+                            <pre>
+{{ packet.sip_info.headers|safe }}
+                            </pre>
+                            <strong>Body:</strong><br>
+                            <pre>
+{{ packet.sip_info.body|safe }}
+                            </pre>
+                        </div>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ packet.time }}</td> <!-- Affichage du temps du paquet -->
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <strong>Packet Fields:</strong>
+                </td>
+            </tr>
+            {% for key, value in packet.fields.items %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ value }}</td>
+                <td colspan="2"></td>
+            </tr>
+            {% endfor %}
+            {% if not forloop.last %}
+            <tr>
+                <td colspan="4"><hr></td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<script>
+    const summaryLinks = document.querySelectorAll('.summary-link');
+
+    summaryLinks.forEach(link => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const summary = link.getAttribute('data-summary');
+            const hiddenDetails = link.nextElementSibling;
+
+            if (hiddenDetails.style.display === 'none') {
+                hiddenDetails.style.display = 'block';
+                link.innerText = 'Hide Details';
+            } else {
+                hiddenDetails.style.display = 'none';
+                link.innerText = summary;
+            }
+        });
+    });
+</script>
+
+{% endblock %}
+
